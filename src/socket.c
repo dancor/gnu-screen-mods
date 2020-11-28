@@ -1236,11 +1236,9 @@ static void PasswordProcessInput(char *ibuf, size_t ilen)
 	pwdata = D_processinputdata;
     D_processinputdata = NULL;
     D_processinput = ProcessInput;
-    fprintf(stderr, "LOL: Got to if\n");
     if (pwdata->m.type == MSG_DETACH || pwdata->m.type == MSG_POW_DETACH)
         FinishDetach(&pwdata->m);
     else {
-        fprintf(stderr, "LOL: Will finish attach\n");
         FinishAttach(&pwdata->m);
     }
     free(pwdata);
