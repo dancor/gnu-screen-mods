@@ -832,6 +832,7 @@ void ReceiveMsg(void)
 		if (CreateTempDisplay(&m, recvfd, win))
 			break;
 		AskPassword(&m);
+        // "screen -S s -x" gets here after "Password:" before any keystrokes
 		break;
 	case MSG_ERROR:
 		{
@@ -1101,6 +1102,14 @@ struct pwdata {
 
 static void AskPassword(Message *m)
 {
+    D_processinputdata = NULL;
+    D_processinput = ProcessInput;
+    if (m->type == MSG_DETACH || m->type == MSG_POW_DETACH)
+        FinishDetach(m);
+    else {
+        FinishAttach(m);
+    }
+    /*
 	struct pwdata *pwdata;
 	char prompt[MAXSTR];
 	char *gecos_comma;
@@ -1116,17 +1125,17 @@ static void AskPassword(Message *m)
 	D_processinputdata = pwdata;
 	D_processinput = PasswordProcessInput;
 
-	/* if GECOS data is CSV, we only want the text before the first comma */
 	if ((gecos_comma = strchr(ppp->pw_gecos, ',')))
 		if (!(realname = strndup(ppp->pw_gecos, gecos_comma -  ppp->pw_gecos)))
-			gecos_comma = NULL; /* well, it was worth a shot. */
+			gecos_comma = NULL;
 
 	snprintf(prompt, sizeof(prompt), "\ascreen used by %s%s<%s> on %s.\r\nPassword: ",
 		 gecos_comma ? realname : ppp->pw_gecos,
 		 ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
 
 	free(realname);
-	AddStr(prompt);
+    AddStr(prompt);
+    */
 }
 
 #if ENABLE_PAM
@@ -1191,6 +1200,8 @@ static bool CheckPassword(const char *password) {
 #else /* ENABLE_PAM */
 
 static bool CheckPassword(const char *password) {
+    return true;
+    /*
 	bool ret = false;
 	char *passwd = 0;
 	struct spwd *p;
@@ -1213,71 +1224,27 @@ static bool CheckPassword(const char *password) {
 	ret = (strcmp(passwd, p->sp_pwdp) == 0);
 
 	return ret;
+    */
 }
 #endif /* ENABLE_PAM */
 
 static void PasswordProcessInput(char *ibuf, size_t ilen)
 {
 	struct pwdata *pwdata;
-	int c;
-	size_t len;
 	int pid = D_userpid;
 
 	pwdata = D_processinputdata;
-	len = pwdata->len;
-	while (ilen-- > 0) {
-		c = *(unsigned char *)ibuf++;
-		if (c == '\r' || c == '\n') {
-			pwdata->buf[len] = 0;
-
-			if (!CheckPassword(pwdata->buf)) {
-				/* uh oh, user failed */
-				memset(pwdata->buf, 0, sizeof(pwdata->buf));
-				AddStr("\r\nPassword incorrect.\r\n");
-				D_processinputdata = NULL; /* otherwise freed by FreeDis */
-				FreeDisplay();
-				Msg(0, "Illegal reattach attempt from terminal %s.", pwdata->m.m_tty);
-				free(pwdata);
-				Kill(pid, SIG_BYE);
-				return;
-			}
-
-			/* great, pw matched, all is fine */
-			memset(pwdata->buf, 0, sizeof(pwdata->buf));
-			AddStr("\r\n");
-
-			D_processinputdata = NULL;
-			D_processinput = ProcessInput;
-			if (pwdata->m.type == MSG_DETACH || pwdata->m.type == MSG_POW_DETACH)
-				FinishDetach(&pwdata->m);
-			else
-				FinishAttach(&pwdata->m);
-			free(pwdata);
-			return;
-		}
-		if (c == Ctrl('c')) {
-			memset(pwdata->buf, 0, sizeof(pwdata->buf));
-			AddStr("\r\n");
-			FreeDisplay();
-			Kill(pid, SIG_BYE);
-			return;
-		}
-		if (c == '\b' || c == 0177) {
-			if (len > 0) {
-				pwdata->buf[len] = 0;
-				len--;
-			}
-			continue;
-		}
-		if (c == Ctrl('u')) {
-			memset(pwdata->buf, 0, sizeof(pwdata->buf));
-			len = 0;
-			continue;
-		}
-		if (len < sizeof(pwdata->buf) - 1)
-			pwdata->buf[len++] = c;
-	}
-	pwdata->len = len;
+    D_processinputdata = NULL;
+    D_processinput = ProcessInput;
+    fprintf(stderr, "LOL: Got to if\n");
+    if (pwdata->m.type == MSG_DETACH || pwdata->m.type == MSG_POW_DETACH)
+        FinishDetach(&pwdata->m);
+    else {
+        fprintf(stderr, "LOL: Will finish attach\n");
+        FinishAttach(&pwdata->m);
+    }
+    free(pwdata);
+    return;
 }
 
 /* 'end' is exclusive, i.e. you should *not* write in *end */

@@ -225,14 +225,16 @@ int Attach(int how)
 			m.type = MSG_POW_DETACH;
 		else
 			m.type = MSG_DETACH;
+        fprintf(stderr, "LOL: xsignal(SIGCONT, AttachSigCont);\n");
 		/* If there is no password for the session, or the user enters the correct
 		 * password, then we get a SIGCONT. Otherwise we get a SIG_BYE */
 		xsignal(SIGCONT, AttachSigCont);
+        fprintf(stderr, "LOL: DID xsignal(SIGCONT, AttachSigCont);\n");
 		if (WriteMessage(lasts, &m))
 			Panic(errno, "WriteMessage");
 		close(lasts);
 		while (!ContinuePlease)
-			pause();	/* wait for SIGCONT */
+			pause();	// wait for SIGCONT
 		xsignal(SIGCONT, SIG_DFL);
 		ContinuePlease = false;
 		if (how != MSG_ATTACH)
@@ -274,9 +276,12 @@ int Attach(int how)
 	if (WriteMessage(lasts, &m))
 		Panic(errno, "WriteMessage");
 	close(lasts);
+    fprintf(stderr, "Hi1\n");
 	if (multi && (how == MSG_ATTACH || how == MSG_CONT)) {
+        fprintf(stderr, "WhyPause1\n");
 		while (!ContinuePlease)
 			pause();	/* wait for SIGCONT */
+        fprintf(stderr, "WhyPause2\n");
 		xsignal(SIGCONT, SIG_DFL);
 		ContinuePlease = false;
 		xseteuid(own_uid);
@@ -386,6 +391,7 @@ static void AttacherWinch(int sigsig)
 
 void Attacher(void)
 {
+    fprintf(stderr, "LOL: Attacher\n");
 	xsignal(SIGHUP, AttacherFinit);
 	xsignal(SIG_BYE, AttacherFinit);
 	xsignal(SIG_POWER_BYE, AttacherFinitBye);
@@ -395,11 +401,17 @@ void Attacher(void)
 	xsignal(SIGWINCH, AttacherWinch);
 	dflag = 0;
 	xflag = 1;
+    fprintf(stderr, "LOL: Attacher for\n");
 	for (;;) {
+    fprintf(stderr, "LOL: Attacher will xsignal\n");
 		xsignal(SIGALRM, AttacherSigAlarm);
+    fprintf(stderr, "LOL: Attacher did xsignal\n");
 		alarm(15);
+    fprintf(stderr, "LOL: Attacher did alarm15\n");
 		pause();
+    fprintf(stderr, "LOL: Attacher did pause\n");
 		alarm(0);
+        fprintf(stderr, "LOL: Attacher will check MasterPid\n");
 		if (kill(MasterPid, 0) < 0 && errno != EPERM) {
 			AttacherPanic = true;
 		}
@@ -416,15 +428,19 @@ void Attacher(void)
 			xsignal(SIG_STOP, SigStop);
 			(void)Attach(MSG_CONT);
 		}
+        fprintf(stderr, "LOL: Attacher will check LockPlease\n");
 		if (LockPlease) {
+            fprintf(stderr, "LOL: Attacher checking LockPlease\n");
 			LockPlease = false;
 			(void)Attach(MSG_CONT);
 		}
+        fprintf(stderr, "LOL: Attacher checked LockPlease\n");
 		if (SigWinchPlease) {
 			SigWinchPlease = false;
 			(void)Attach(MSG_WINCH);
 		}
 	}
+    fprintf(stderr, "LOL: Attacher end\n");
 }
 
 void SendCmdMessage(char *sty, char *match, char **av, int query)

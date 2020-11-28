@@ -585,6 +585,7 @@ int main(int argc, char **argv)
 
 	xsignal(SIGSEGV, CoreDump);
 
+    fprintf(stderr, "LOL: DidOpts\n");
 	setlocale(LC_ALL, "");
 	if (nwin_options.encoding == -1) {
 		/* ask locale if we should start in UTF-8 mode */
@@ -880,8 +881,11 @@ int main(int argc, char **argv)
 		SendCmdMessage(sty, SocketMatch, argv, queryflag >= 0);
 		exit(0);
 	} else if (rflag || xflag) {
+        fprintf(stderr, "LOL: screen.c Attach1\n");
 		if (Attach(MSG_ATTACH)) {
+            fprintf(stderr, "LOL: screen.c Attach2\n");
 			Attacher();
+            fprintf(stderr, "LOL: screen.c Attach3\n");
 			/* NOTREACHED */
 		}
 		if (multiattach)
