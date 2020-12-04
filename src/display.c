@@ -1427,6 +1427,8 @@ void SetRenditionMline(struct mline *ml, int x)
 
 void MakeStatus(char *msg)
 {
+    return;
+    /*
 	char *s, *t;
 	int max;
 
@@ -1437,7 +1439,7 @@ void MakeStatus(char *msg)
 		return;
 	if (!D_tcinited) {
 		if (D_processinputdata)
-			return;	/* XXX: better */
+			return;	// XXX: better
 		AddStr(msg);
 		AddStr("\r\n");
 		Flush(0);
@@ -1450,7 +1452,7 @@ void MakeStatus(char *msg)
 	} else
 		max = D_WS > 0 ? D_WS : (D_width - !D_CLP);
 	if (D_status) {
-		/* same message? */
+		// same message?
 		if (strcmp(msg, D_status_lastmsg) == 0) {
 			if (!D_status_obufpos)
 				SetTimeout(&D_statusev, MsgWait);
@@ -1489,7 +1491,7 @@ void MakeStatus(char *msg)
 		InsertMode(false);
 		AddStr(msg);
 		if (D_status_len < max) {
-			/* Wayne Davison: add extra space for readability */
+			// Wayne Davison: add extra space for readability
 			D_status_len++;
 			SetRendition(&mchar_null);
 			AddChar(' ');
@@ -1512,7 +1514,7 @@ void MakeStatus(char *msg)
 		Display *olddisplay = display;
 		Layer *oldflayer = flayer;
 
-		/* this is copied over from RemoveStatus() */
+		// this is copied over from RemoveStatus()
 		D_status = 0;
 		GotoPos(STATCOL(D_width, D_status_len), STATLINE());
 		RefreshLine(STATLINE(), STATCOL(D_width, D_status_len), STATCOL(D_width, D_status_len) + D_status_len - 1, 0);
@@ -1524,6 +1526,7 @@ void MakeStatus(char *msg)
 		flayer = oldflayer;
 		D_status = STATUS_ON_WIN;
 	}
+    */
 }
 
 void RemoveStatus(void)
